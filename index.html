@@ -45,6 +45,24 @@
             border-radius: 5px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+        }
+        .file-item input {
+            background: transparent;
+            border: none;
+            color: white;
+            width: 60%;
+        }
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .file-actions button {
+            background: red;
+            border: none;
+            color: white;
+            padding: 5px;
+            cursor: pointer;
         }
         a {
             color: #007BFF;
@@ -67,7 +85,13 @@
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const fileList = document.getElementById('fileList');
-        let filesArray = [];
+        let storedFiles = JSON.parse(localStorage.getItem('files')) || [];
+
+        // Load saved files from localStorage
+        function loadFiles() {
+            fileList.innerHTML = "<h3>Shared Files</h3>";
+            storedFiles.forEach(file => displayFile(file));
+        }
 
         // Open file dialog when clicking dropZone
         dropZone.addEventListener('click', () => fileInput.click());
@@ -96,39 +120,73 @@
         // Process uploaded files
         function handleFiles(files) {
             for (let file of files) {
-                filesArray.push(file);
-                displayFile(file);
+                const fileURL = URL.createObjectURL(file);
+                const fileObj = { name: file.name, url: fileURL };
+                storedFiles.push(fileObj);
+                displayFile(fileObj);
             }
+            saveFiles();
         }
 
-        // Upload function (displays file in list)
+        // Upload function
         function uploadFiles() {
-            if (filesArray.length === 0) return alert("Please select a file");
-
-            filesArray.forEach(file => displayFile(file));
-            filesArray = []; // Clear array after upload
+            if (storedFiles.length === 0) return alert("Please select a file");
+            saveFiles();
         }
 
-        // Display file in list with download link
+        // Save to localStorage
+        function saveFiles() {
+            localStorage.setItem('files', JSON.stringify(storedFiles));
+        }
+
+        // Display file in list with download, rename, and delete options
         function displayFile(file) {
-            const fileURL = URL.createObjectURL(file);
             const fileItem = document.createElement('div');
             fileItem.classList.add('file-item');
 
-            const fileName = document.createElement('span');
-            fileName.textContent = file.name;
+            const fileNameInput = document.createElement('input');
+            fileNameInput.type = "text";
+            fileNameInput.value = file.name;
+            fileNameInput.addEventListener('blur', () => renameFile(file, fileNameInput.value));
 
             const downloadLink = document.createElement('a');
-            downloadLink.href = fileURL;
+            downloadLink.href = file.url;
             downloadLink.download = file.name;
             downloadLink.innerText = "Download";
 
-            fileItem.appendChild(fileName);
-            fileItem.appendChild(downloadLink);
+            const deleteButton = document.createElement('button');
+            deleteButton.innerText = "🗑";
+            deleteButton.onclick = () => deleteFile(file);
+
+            const fileActions = document.createElement('div');
+            fileActions.classList.add('file-actions');
+            fileActions.appendChild(downloadLink);
+            fileActions.appendChild(deleteButton);
+
+            fileItem.appendChild(fileNameInput);
+            fileItem.appendChild(fileActions);
             fileList.appendChild(fileItem);
         }
+
+        // Rename file function
+        function renameFile(file, newName) {
+            const fileIndex = storedFiles.findIndex(f => f.url === file.url);
+            if (fileIndex !== -1) {
+                storedFiles[fileIndex].name = newName;
+                saveFiles();
+                loadFiles(); // Refresh list
+            }
+        }
+
+        // Delete file function
+        function deleteFile(file) {
+            storedFiles = storedFiles.filter(f => f.url !== file.url);
+            saveFiles();
+            loadFiles(); // Refresh list
+        }
+
+        // Load existing files on page load
+        loadFiles();
     </script>
 </body>
 </html>
-
-
