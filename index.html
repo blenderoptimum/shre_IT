@@ -165,7 +165,7 @@
         const adminFileList = document.getElementById('adminFileList');
         const adminPanel = document.getElementById('adminPanel');
 
-        let storedFiles = JSON.parse(localStorage.getItem('files')) || [];
+        let storedFiles = [];
         let isAdmin = false;
 
         function checkAdmin() {
@@ -186,12 +186,28 @@
 
         function loadFiles() {
             fileList.innerHTML = "<h3>📁 Shared Files</h3>";
-            storedFiles.forEach(file => displayFile(file, false));
+            fetch('http://localhost:3000/files')  // Fetch files from the backend
+                .then(response => response.json())
+                .then(data => {
+                    data.files.forEach(fileUrl => {
+                        const fileObj = { name: fileUrl.split('/').pop(), url: fileUrl };
+                        displayFile(fileObj, false);
+                    });
+                })
+                .catch(error => console.error('Error loading files:', error));
         }
 
         function loadAdminFiles() {
             adminFileList.innerHTML = "<h3>Manage Files</h3>";
-            storedFiles.forEach(file => displayFile(file, true));
+            fetch('http://localhost:3000/files')  // Fetch files from the backend
+                .then(response => response.json())
+                .then(data => {
+                    data.files.forEach(fileUrl => {
+                        const fileObj = { name: fileUrl.split('/').pop(), url: fileUrl };
+                        displayFile(fileObj, true);
+                    });
+                })
+                .catch(error => console.error('Error loading admin files:', error));
         }
 
         dropZone.addEventListener('click', () => fileInput.click());
@@ -212,20 +228,26 @@
 
         function handleFiles(files) {
             for (let file of files) {
-                const fileURL = URL.createObjectURL(file);
-                const fileObj = { name: file.name, url: fileURL, type: file.type };
-                storedFiles.push(fileObj);
-                displayFile(fileObj, false);
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('http://localhost:3000/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const fileObj = { name: file.name, url: data.fileUrl };
+                    storedFiles.push(fileObj);
+                    displayFile(fileObj, false);
+                })
+                .catch(error => console.error('Error uploading file:', error));
             }
-            saveFiles();
         }
 
         function uploadFiles() {
-            saveFiles();
-        }
-
-        function saveFiles() {
-            localStorage.setItem('files', JSON.stringify(storedFiles));
+            // This function can be used to trigger manual upload
+            alert("Upload button clicked, but the drag & drop feature is active.");
         }
 
         function displayFile(file, adminMode) {
@@ -257,9 +279,16 @@
         }
 
         function deleteFile(file) {
-            storedFiles = storedFiles.filter(f => f.url !== file.url);
-            saveFiles();
-            loadFiles();
+            fetch('http://localhost:3000/delete', {
+                method: 'DELETE',
+                body: JSON.stringify({ url: file.url })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                loadFiles(); // Refresh the file list
+            })
+            .catch(error => console.error('Error deleting file:', error));
         }
 
         loadFiles();
