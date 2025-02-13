@@ -60,15 +60,24 @@
             
             const file = fileInput.files[0];
             const fileURL = URL.createObjectURL(file);
-            
+
             const fileList = document.getElementById('fileList');
             const fileItem = document.createElement('div');
             fileItem.classList.add('file-item');
-            fileItem.innerHTML = `<span>${file.name}</span> <a href="${fileURL}" download>Download</a>`;
-            
+
+            const fileName = document.createElement('span');
+            fileName.textContent = file.name;
+
+            const downloadLink = document.createElement('a');
+            downloadLink.href = fileURL;
+            downloadLink.download = file.name; // Correctly sets the file name
+            downloadLink.innerText = "Download";
+
+            fileItem.appendChild(fileName);
+            fileItem.appendChild(downloadLink);
             fileList.appendChild(fileItem);
         }
     </script>
 </body>
 </html>
- 
+
