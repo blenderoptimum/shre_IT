@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Sharing Page</title>
+    <title>File Sharing Hub - Admin Panel</title>
     <style>
         body {
             background-color: black;
@@ -71,6 +71,10 @@
             max-height: 200px;
             border-radius: 5px;
         }
+        .admin-controls {
+            display: none;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -84,15 +88,49 @@
         </div>
     </div>
 
+    <!-- Admin Panel -->
+    <div class="container admin-controls" id="adminPanel">
+        <h2>Admin Panel</h2>
+        <button onclick="logoutAdmin()">Logout</button>
+        <div class="file-list" id="adminFileList">
+            <h3>Manage Files</h3>
+        </div>
+    </div>
+
     <script>
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const fileList = document.getElementById('fileList');
+        const adminFileList = document.getElementById('adminFileList');
+        const adminPanel = document.getElementById('adminPanel');
+
         let storedFiles = JSON.parse(localStorage.getItem('files')) || [];
+        let isAdmin = false;
+
+        function checkAdmin() {
+            const password = prompt("Enter Admin Password:");
+            if (password === "admin123") { // Change this password as needed
+                isAdmin = true;
+                adminPanel.style.display = "block";
+                loadAdminFiles();
+            } else {
+                alert("Access Denied");
+            }
+        }
+
+        function logoutAdmin() {
+            isAdmin = false;
+            adminPanel.style.display = "none";
+        }
 
         function loadFiles() {
             fileList.innerHTML = "<h3>Shared Files</h3>";
-            storedFiles.forEach(file => displayFile(file));
+            storedFiles.forEach(file => displayFile(file, false));
+        }
+
+        function loadAdminFiles() {
+            adminFileList.innerHTML = "<h3>Manage Files</h3>";
+            storedFiles.forEach(file => displayFile(file, true));
         }
 
         dropZone.addEventListener('click', () => fileInput.click());
@@ -121,7 +159,7 @@
                 const fileURL = URL.createObjectURL(file);
                 const fileObj = { name: file.name, url: fileURL, type: file.type };
                 storedFiles.push(fileObj);
-                displayFile(fileObj);
+                displayFile(fileObj, false);
             }
             saveFiles();
         }
@@ -135,12 +173,16 @@
             localStorage.setItem('files', JSON.stringify(storedFiles));
         }
 
-        function displayFile(file) {
+        function displayFile(file, adminMode) {
             const fileItem = document.createElement('div');
             fileItem.classList.add('file-item');
 
             const fileName = document.createElement('span');
             fileName.innerText = file.name;
+
+            const renameButton = document.createElement('button');
+            renameButton.innerText = "✏️ Rename";
+            renameButton.onclick = () => renameFile(file);
 
             const previewDiv = document.createElement('div');
             previewDiv.classList.add('preview');
@@ -180,14 +222,31 @@
 
             fileItem.appendChild(fileName);
             fileItem.appendChild(previewDiv);
+            if (adminMode) fileItem.appendChild(renameButton);
             fileItem.appendChild(fileActions);
-            fileList.appendChild(fileItem);
+
+            if (adminMode) {
+                adminFileList.appendChild(fileItem);
+            } else {
+                fileList.appendChild(fileItem);
+            }
+        }
+
+        function renameFile(file) {
+            const newName = prompt("Enter new file name:", file.name);
+            if (newName) {
+                file.name = newName;
+                saveFiles();
+                loadFiles();
+                loadAdminFiles();
+            }
         }
 
         function deleteFile(file) {
             storedFiles = storedFiles.filter(f => f.url !== file.url);
             saveFiles();
             loadFiles();
+            loadAdminFiles();
         }
 
         loadFiles();
