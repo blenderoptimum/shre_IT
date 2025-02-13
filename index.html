@@ -26,9 +26,6 @@
             margin: 10px 0;
             cursor: pointer;
         }
-        #dropZone.highlight {
-            background: rgba(0, 123, 255, 0.2);
-        }
         input, button {
             margin: 10px 0;
             padding: 10px;
@@ -75,9 +72,22 @@
             display: none;
             margin-top: 20px;
         }
+        .admin-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
+    <button class="admin-btn" onclick="checkAdmin()">Admin Login</button>
+
     <h2>File Sharing Hub</h2>
     <div class="container">
         <div id="dropZone">Drag & Drop Files Here or Click to Select</div>
@@ -109,7 +119,7 @@
 
         function checkAdmin() {
             const password = prompt("Enter Admin Password:");
-            if (password === "admin123") { // Change this password as needed
+            if (password === "0829409057") { // Change this password
                 isAdmin = true;
                 adminPanel.style.display = "block";
                 loadAdminFiles();
@@ -253,3 +263,4 @@
     </script>
 </body>
 </html>
+
