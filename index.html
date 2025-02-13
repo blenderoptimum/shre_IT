@@ -5,103 +5,156 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Sharing Hub - Admin Panel</title>
     <style>
+        /* General Styles */
         body {
-            background-color: black;
-            color: white;
-            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #fff;
+            font-family: 'Arial', sans-serif;
             text-align: center;
             margin: 0;
             padding: 20px;
         }
+        
         .container {
-            max-width: 600px;
+            max-width: 700px;
             margin: auto;
             padding: 20px;
-            background: #222;
-            border-radius: 10px;
+            background: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
         }
+
+        /* Subtle Admin Button */
+        .admin-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: #333;
+            color: #ff9800;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .admin-btn:hover {
+            background: #444;
+        }
+
+        /* Drop Zone */
         #dropZone {
             border: 2px dashed #007BFF;
-            padding: 20px;
+            padding: 30px;
             margin: 10px 0;
             cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: #181818;
         }
-        input, button {
+
+        #dropZone:hover {
+            background: #242424;
+            border-color: #009dff;
+        }
+
+        /* Buttons */
+        button {
             margin: 10px 0;
-            padding: 10px;
+            padding: 12px;
             width: 100%;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
         }
+
+        .upload-btn {
+            background: #007BFF;
+            color: white;
+        }
+
+        /* File List */
         .file-list {
             margin-top: 20px;
             text-align: left;
         }
+
         .file-item {
-            background: #333;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
+            background: #222;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
+            transition: background 0.3s ease;
         }
+
+        .file-item:hover {
+            background: #333;
+        }
+
         .file-actions {
             display: flex;
             justify-content: space-between;
             margin-top: 5px;
         }
+
         .file-actions button {
             background: red;
-            border: none;
             color: white;
             padding: 5px;
-            cursor: pointer;
+            border-radius: 5px;
         }
+
         a {
             color: #007BFF;
             text-decoration: none;
+            font-weight: bold;
         }
+
+        /* File Preview */
         .preview {
             margin-top: 10px;
             text-align: center;
         }
+
         .preview img, .preview video, .preview iframe {
             max-width: 100%;
             max-height: 200px;
             border-radius: 5px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
         }
+
+        /* Admin Panel */
         .admin-controls {
             display: none;
             margin-top: 20px;
         }
-        .admin-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #ff9800;
-            color: white;
-            border: none;
-            padding: 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
     </style>
 </head>
 <body>
-    <button class="admin-btn" onclick="checkAdmin()">Admin Login</button>
+
+    <button class="admin-btn" onclick="checkAdmin()">⚙️ Admin</button>
 
     <h2>File Sharing Hub</h2>
+
     <div class="container">
-        <div id="dropZone">Drag & Drop Files Here or Click to Select</div>
+        <div id="dropZone">📂 Drag & Drop Files Here or Click to Select</div>
         <input type="file" id="fileInput" multiple style="display: none;">
-        <button onclick="uploadFiles()">Upload File</button>
+        <button class="upload-btn" onclick="uploadFiles()">Upload File</button>
+        
         <div class="file-list" id="fileList">
-            <h3>Shared Files</h3>
+            <h3>📁 Shared Files</h3>
         </div>
     </div>
 
     <!-- Admin Panel -->
     <div class="container admin-controls" id="adminPanel">
-        <h2>Admin Panel</h2>
-        <button onclick="logoutAdmin()">Logout</button>
+        <h2>⚙️ Admin Panel</h2>
+        <button onclick="logoutAdmin()" class="upload-btn">Logout</button>
         <div class="file-list" id="adminFileList">
             <h3>Manage Files</h3>
         </div>
@@ -119,7 +172,7 @@
 
         function checkAdmin() {
             const password = prompt("Enter Admin Password:");
-            if (password === "0829409057") { // Change this password
+            if (password === "admin123") { // Change this password
                 isAdmin = true;
                 adminPanel.style.display = "block";
                 loadAdminFiles();
@@ -134,7 +187,7 @@
         }
 
         function loadFiles() {
-            fileList.innerHTML = "<h3>Shared Files</h3>";
+            fileList.innerHTML = "<h3>📁 Shared Files</h3>";
             storedFiles.forEach(file => displayFile(file, false));
         }
 
@@ -145,22 +198,17 @@
 
         dropZone.addEventListener('click', () => fileInput.click());
 
-        fileInput.addEventListener('change', (event) => {
-            handleFiles(event.target.files);
-        });
-
         dropZone.addEventListener('dragover', (event) => {
             event.preventDefault();
-            dropZone.classList.add('highlight');
+            dropZone.style.borderColor = "#009dff";
         });
 
         dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('highlight');
+            dropZone.style.borderColor = "#007BFF";
         });
 
         dropZone.addEventListener('drop', (event) => {
             event.preventDefault();
-            dropZone.classList.remove('highlight');
             handleFiles(event.dataTransfer.files);
         });
 
@@ -175,7 +223,6 @@
         }
 
         function uploadFiles() {
-            if (storedFiles.length === 0) return alert("Please select a file");
             saveFiles();
         }
 
@@ -190,77 +237,35 @@
             const fileName = document.createElement('span');
             fileName.innerText = file.name;
 
-            const renameButton = document.createElement('button');
-            renameButton.innerText = "✏️ Rename";
-            renameButton.onclick = () => renameFile(file);
-
             const previewDiv = document.createElement('div');
             previewDiv.classList.add('preview');
-
-            if (file.type.startsWith("image/")) {
-                const img = document.createElement('img');
-                img.src = file.url;
-                previewDiv.appendChild(img);
-            } else if (file.type.startsWith("video/")) {
-                const video = document.createElement('video');
-                video.src = file.url;
-                video.controls = true;
-                previewDiv.appendChild(video);
-            } else if (file.type === "application/pdf") {
-                const iframe = document.createElement('iframe');
-                iframe.src = file.url;
-                previewDiv.appendChild(iframe);
-            } else {
-                const defaultMsg = document.createElement('p');
-                defaultMsg.innerText = "Preview not available";
-                previewDiv.appendChild(defaultMsg);
-            }
 
             const downloadLink = document.createElement('a');
             downloadLink.href = file.url;
             downloadLink.download = file.name;
-            downloadLink.innerText = "Download";
+            downloadLink.innerText = "⬇️ Download";
 
             const deleteButton = document.createElement('button');
             deleteButton.innerText = "🗑";
+            deleteButton.classList.add('delete-btn');
             deleteButton.onclick = () => deleteFile(file);
-
-            const fileActions = document.createElement('div');
-            fileActions.classList.add('file-actions');
-            fileActions.appendChild(downloadLink);
-            fileActions.appendChild(deleteButton);
 
             fileItem.appendChild(fileName);
             fileItem.appendChild(previewDiv);
-            if (adminMode) fileItem.appendChild(renameButton);
-            fileItem.appendChild(fileActions);
+            fileItem.appendChild(downloadLink);
+            fileItem.appendChild(deleteButton);
 
-            if (adminMode) {
-                adminFileList.appendChild(fileItem);
-            } else {
-                fileList.appendChild(fileItem);
-            }
-        }
-
-        function renameFile(file) {
-            const newName = prompt("Enter new file name:", file.name);
-            if (newName) {
-                file.name = newName;
-                saveFiles();
-                loadFiles();
-                loadAdminFiles();
-            }
+            (adminMode ? adminFileList : fileList).appendChild(fileItem);
         }
 
         function deleteFile(file) {
             storedFiles = storedFiles.filter(f => f.url !== file.url);
             saveFiles();
             loadFiles();
-            loadAdminFiles();
         }
 
         loadFiles();
     </script>
+
 </body>
 </html>
-
