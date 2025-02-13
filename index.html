@@ -44,18 +44,12 @@
             margin: 5px 0;
             border-radius: 5px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .file-item input {
-            background: transparent;
-            border: none;
-            color: white;
-            width: 60%;
+            flex-direction: column;
         }
         .file-actions {
             display: flex;
-            gap: 10px;
+            justify-content: space-between;
+            margin-top: 5px;
         }
         .file-actions button {
             background: red;
@@ -67,6 +61,15 @@
         a {
             color: #007BFF;
             text-decoration: none;
+        }
+        .preview {
+            margin-top: 10px;
+            text-align: center;
+        }
+        .preview img, .preview video, .preview iframe {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -87,21 +90,17 @@
         const fileList = document.getElementById('fileList');
         let storedFiles = JSON.parse(localStorage.getItem('files')) || [];
 
-        // Load saved files from localStorage
         function loadFiles() {
             fileList.innerHTML = "<h3>Shared Files</h3>";
             storedFiles.forEach(file => displayFile(file));
         }
 
-        // Open file dialog when clicking dropZone
         dropZone.addEventListener('click', () => fileInput.click());
 
-        // Handle file input selection
         fileInput.addEventListener('change', (event) => {
             handleFiles(event.target.files);
         });
 
-        // Drag & Drop events
         dropZone.addEventListener('dragover', (event) => {
             event.preventDefault();
             dropZone.classList.add('highlight');
@@ -117,37 +116,53 @@
             handleFiles(event.dataTransfer.files);
         });
 
-        // Process uploaded files
         function handleFiles(files) {
             for (let file of files) {
                 const fileURL = URL.createObjectURL(file);
-                const fileObj = { name: file.name, url: fileURL };
+                const fileObj = { name: file.name, url: fileURL, type: file.type };
                 storedFiles.push(fileObj);
                 displayFile(fileObj);
             }
             saveFiles();
         }
 
-        // Upload function
         function uploadFiles() {
             if (storedFiles.length === 0) return alert("Please select a file");
             saveFiles();
         }
 
-        // Save to localStorage
         function saveFiles() {
             localStorage.setItem('files', JSON.stringify(storedFiles));
         }
 
-        // Display file in list with download, rename, and delete options
         function displayFile(file) {
             const fileItem = document.createElement('div');
             fileItem.classList.add('file-item');
 
-            const fileNameInput = document.createElement('input');
-            fileNameInput.type = "text";
-            fileNameInput.value = file.name;
-            fileNameInput.addEventListener('blur', () => renameFile(file, fileNameInput.value));
+            const fileName = document.createElement('span');
+            fileName.innerText = file.name;
+
+            const previewDiv = document.createElement('div');
+            previewDiv.classList.add('preview');
+
+            if (file.type.startsWith("image/")) {
+                const img = document.createElement('img');
+                img.src = file.url;
+                previewDiv.appendChild(img);
+            } else if (file.type.startsWith("video/")) {
+                const video = document.createElement('video');
+                video.src = file.url;
+                video.controls = true;
+                previewDiv.appendChild(video);
+            } else if (file.type === "application/pdf") {
+                const iframe = document.createElement('iframe');
+                iframe.src = file.url;
+                previewDiv.appendChild(iframe);
+            } else {
+                const defaultMsg = document.createElement('p');
+                defaultMsg.innerText = "Preview not available";
+                previewDiv.appendChild(defaultMsg);
+            }
 
             const downloadLink = document.createElement('a');
             downloadLink.href = file.url;
@@ -163,29 +178,18 @@
             fileActions.appendChild(downloadLink);
             fileActions.appendChild(deleteButton);
 
-            fileItem.appendChild(fileNameInput);
+            fileItem.appendChild(fileName);
+            fileItem.appendChild(previewDiv);
             fileItem.appendChild(fileActions);
             fileList.appendChild(fileItem);
         }
 
-        // Rename file function
-        function renameFile(file, newName) {
-            const fileIndex = storedFiles.findIndex(f => f.url === file.url);
-            if (fileIndex !== -1) {
-                storedFiles[fileIndex].name = newName;
-                saveFiles();
-                loadFiles(); // Refresh list
-            }
-        }
-
-        // Delete file function
         function deleteFile(file) {
             storedFiles = storedFiles.filter(f => f.url !== file.url);
             saveFiles();
-            loadFiles(); // Refresh list
+            loadFiles();
         }
 
-        // Load existing files on page load
         loadFiles();
     </script>
 </body>
