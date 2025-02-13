@@ -5,75 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Sharing Hub</title>
     <style>
-        body {
-            background-color: #121212;
-            color: #fff;
-            font-family: 'Arial', sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 700px;
-            margin: auto;
-            padding: 20px;
-            background: #1e1e1e;
-            border-radius: 12px;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
-        }
-        /* Drop Zone */
-        #dropZone {
-            border: 2px dashed #007BFF;
-            padding: 30px;
-            margin: 10px 0;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            background: #181818;
-        }
-        /* Buttons */
-        button {
-            margin: 10px 0;
-            padding: 12px;
-            width: 100%;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        .upload-btn {
-            background: #007BFF;
-            color: white;
-        }
-        /* File List */
-        .file-list {
-            margin-top: 20px;
-            text-align: left;
-        }
-        .file-item {
-            background: #222;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            transition: background 0.3s ease;
-        }
-        .file-item:hover {
-            background: #333;
-        }
-        .file-actions button {
-            background: red;
-            color: white;
-            padding: 5px;
-            border-radius: 5px;
-        }
-        a {
-            color: #007BFF;
-            text-decoration: none;
-            font-weight: bold;
-        }
+        /* Styling for the site */
+        body { background-color: #121212; color: #fff; font-family: Arial, sans-serif; text-align: center; }
+        .container { max-width: 700px; margin: auto; padding: 20px; background: #1e1e1e; border-radius: 12px; box-shadow: 0 0 15px rgba(255, 255, 255, 0.1); }
+        #dropZone { border: 2px dashed #007BFF; padding: 30px; margin: 10px 0; cursor: pointer; border-radius: 8px; background: #181818; }
+        .upload-btn { background: #007BFF; color: white; margin-top: 10px; padding: 12px; width: 100%; }
+        .file-list { margin-top: 20px; text-align: left; }
+        .file-item { background: #222; padding: 12px; margin: 8px 0; border-radius: 8px; display: flex; flex-direction: column; }
+        .file-item:hover { background: #333; }
     </style>
 </head>
 <body>
@@ -94,22 +33,19 @@
         const fileInput = document.getElementById('fileInput');
         const fileList = document.getElementById('fileList');
 
-        // Function to load the list of uploaded files from the server
         function loadFiles() {
             fetch('http://localhost:3000/files')
                 .then(response => response.json())
                 .then(files => {
-                    fileList.innerHTML = "<h3>📁 Shared Files</h3>";
+                    fileList.innerHTML = "<h3>📁 Shared Files</h3>"; 
                     files.forEach(file => {
                         const fileItem = document.createElement('div');
                         fileItem.classList.add('file-item');
-
                         const fileName = document.createElement('span');
                         fileName.innerText = file;
 
                         const previewDiv = document.createElement('div');
                         previewDiv.classList.add('preview');
-
                         const fileUrl = `/uploads/${file}`;
                         const fileLink = document.createElement('a');
                         fileLink.href = fileUrl;
@@ -117,33 +53,20 @@
                         fileLink.innerText = "⬇️ Download";
 
                         previewDiv.appendChild(fileLink);
-
                         fileItem.appendChild(fileName);
                         fileItem.appendChild(previewDiv);
-
                         fileList.appendChild(fileItem);
                     });
                 })
                 .catch(error => console.error('Error fetching files:', error));
         }
 
-        // Call loadFiles on page load
         window.onload = function() {
             loadFiles();
         };
 
-        // Handling file uploads
         dropZone.addEventListener('click', () => fileInput.click());
-
-        dropZone.addEventListener('dragover', (event) => {
-            event.preventDefault();
-            dropZone.style.borderColor = "#009dff";
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.style.borderColor = "#007BFF";
-        });
-
+        dropZone.addEventListener('dragover', (event) => event.preventDefault());
         dropZone.addEventListener('drop', (event) => {
             event.preventDefault();
             handleFiles(event.dataTransfer.files);
@@ -159,18 +82,13 @@
                 body: formData
             })
             .then(response => response.text())
-            .then(() => {
-                loadFiles(); // Reload files after successful upload
-            })
+            .then(() => loadFiles())
             .catch(error => console.error('Error uploading file:', error));
         }
 
         function uploadFiles() {
             const files = fileInput.files;
-            if (files.length === 0) {
-                return;
-            }
-
+            if (files.length === 0) return;
             const formData = new FormData();
             for (let file of files) {
                 formData.append('file', file);
@@ -180,9 +98,7 @@
                 body: formData
             })
             .then(response => response.text())
-            .then(() => {
-                loadFiles(); // Reload files after successful upload
-            })
+            .then(() => loadFiles())
             .catch(error => console.error('Error uploading file:', error));
         }
     </script>
