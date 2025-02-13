@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Sharing Hub - Admin Panel</title>
+    <title>File Sharing Hub</title>
     <style>
-        /* General Styles */
+        /* Basic Styles (same as before) */
         body {
             background-color: #121212;
             color: #fff;
@@ -165,8 +165,21 @@
         const adminFileList = document.getElementById('adminFileList');
         const adminPanel = document.getElementById('adminPanel');
 
-        let storedFiles = [];
         let isAdmin = false;
+
+        // Fetch files from the server on load
+        document.addEventListener('DOMContentLoaded', fetchFiles);
+
+        // Function to fetch files from the server
+        function fetchFiles() {
+            fetch('http://localhost:3000/files') // Adjust to your server's URL
+                .then(response => response.json())
+                .then(data => {
+                    fileList.innerHTML = "<h3>📁 Shared Files</h3>";
+                    data.files.forEach(file => displayFile(file));
+                })
+                .catch(err => console.error('Error fetching files:', err));
+        }
 
         function checkAdmin() {
             const password = prompt("Enter Admin Password:");
@@ -184,30 +197,8 @@
             adminPanel.style.display = "none";
         }
 
-        function loadFiles() {
-            fileList.innerHTML = "<h3>📁 Shared Files</h3>";
-            fetch('http://localhost:3000/files')  // Fetch files from the backend
-                .then(response => response.json())
-                .then(data => {
-                    data.files.forEach(fileUrl => {
-                        const fileObj = { name: fileUrl.split('/').pop(), url: fileUrl };
-                        displayFile(fileObj, false);
-                    });
-                })
-                .catch(error => console.error('Error loading files:', error));
-        }
-
         function loadAdminFiles() {
-            adminFileList.innerHTML = "<h3>Manage Files</h3>";
-            fetch('http://localhost:3000/files')  // Fetch files from the backend
-                .then(response => response.json())
-                .then(data => {
-                    data.files.forEach(fileUrl => {
-                        const fileObj = { name: fileUrl.split('/').pop(), url: fileUrl };
-                        displayFile(fileObj, true);
-                    });
-                })
-                .catch(error => console.error('Error loading admin files:', error));
+            fetchFiles(); // Load the files for admin
         }
 
         dropZone.addEventListener('click', () => fileInput.click());
@@ -227,71 +218,45 @@
         });
 
         function handleFiles(files) {
+            const formData = new FormData();
             for (let file of files) {
-                const formData = new FormData();
-                formData.append('file', file);
-
-                fetch('http://localhost:3000/upload', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    const fileObj = { name: file.name, url: data.fileUrl };
-                    storedFiles.push(fileObj);
-                    displayFile(fileObj, false);
-                })
-                .catch(error => console.error('Error uploading file:', error));
+                formData.append("file", file);
             }
+
+            fetch('http://localhost:3000/upload', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('File uploaded:', data);
+                fetchFiles(); // Reload file list after upload
+            })
+            .catch(err => console.error('Upload error:', err));
         }
 
-        function uploadFiles() {
-            // This function can be used to trigger manual upload
-            alert("Upload button clicked, but the drag & drop feature is active.");
-        }
-
-        function displayFile(file, adminMode) {
+        function displayFile(file) {
             const fileItem = document.createElement('div');
             fileItem.classList.add('file-item');
 
             const fileName = document.createElement('span');
-            fileName.innerText = file.name;
-
-            const previewDiv = document.createElement('div');
-            previewDiv.classList.add('preview');
+            fileName.innerText = file;
 
             const downloadLink = document.createElement('a');
-            downloadLink.href = file.url;
-            downloadLink.download = file.name;
+            downloadLink.href = file;
+            downloadLink.download = file;
             downloadLink.innerText = "⬇️ Download";
 
-            const deleteButton = document.createElement('button');
-            deleteButton.innerText = "🗑";
-            deleteButton.classList.add('delete-btn');
-            deleteButton.onclick = () => deleteFile(file);
-
             fileItem.appendChild(fileName);
-            fileItem.appendChild(previewDiv);
             fileItem.appendChild(downloadLink);
-            fileItem.appendChild(deleteButton);
 
-            (adminMode ? adminFileList : fileList).appendChild(fileItem);
+            fileList.appendChild(fileItem);
         }
 
-        function deleteFile(file) {
-            fetch('http://localhost:3000/delete', {
-                method: 'DELETE',
-                body: JSON.stringify({ url: file.url })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                loadFiles(); // Refresh the file list
-            })
-            .catch(error => console.error('Error deleting file:', error));
+        function uploadFiles() {
+            // Open file dialog to upload files
+            fileInput.click();
         }
-
-        loadFiles();
     </script>
 
 </body>
